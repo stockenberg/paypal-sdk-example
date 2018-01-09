@@ -3,8 +3,8 @@
 
 
 $base = "http://localhost:4567";
-$clientId = 'AYQYBpHT3PPOD30xjp0noS-4KApxDyPNrWvVc3qQIlrSB_TQOrkswI6X5HTYJcbU_4VMv6lBS6pbX9CR';
-$clientSecret = 'EOaMXKFieOvQ9K-EJ01opqhHqHjnszAeizREkTxrYoNME2ps6ZEiCm3l5CJvLN9TgV4xzObnvT0ThNhN';
+$clientId = 'id';
+$clientSecret = 'secret';
 
 function getApiContext($clientId, $clientSecret)
 {
