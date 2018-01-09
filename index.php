@@ -1,37 +1,55 @@
 <?php
 
 include __DIR__ . "/vendor/autoload.php";
+include __DIR__ . "/config.php";
 
 $payer = new \PayPal\Api\Payer();
+$payer->setPaymentMethod('paypal');
 
+$item = new \PayPal\Api\Item();
+$item->setName('Fresh Apple')
+	->setCurrency('EUR')
+	->setQuantity(1)
+	->setSku('#fds')
+	->setPrice(5);
 
-$clientId = 'AYSq3RDGsmBLJE-otTkBtM-jBRd1TCQwFf9RGfwddNXWz0uFU9ztymylOhRS';
-$clientSecret = 'EGnHDxD_qRPdaLdZz8iCr8N7_MzF-YHPTkjs6NKYQvQSBngp4PTTVWkPZRbL';
+$itemList = new \PayPal\Api\ItemList();
+$itemList->setItems([$item]);
 
-function getApiContext($clientId, $clientSecret)
-{
+$details = new \PayPal\Api\Details();
+$details->setShipping(2)
+	->setTax(1)
+	->setSubtotal(5);
 
-	$apiContext = new \PayPal\Rest\ApiContext(
-		new \PayPal\Auth\OAuthTokenCredential(
-			$clientId,
-			$clientSecret
-		)
-	);
+$amount = new \PayPal\Api\Amount();
+$amount->setCurrency('EUR')
+	->setTotal(8)
+	->setDetails($details);
 
-	$apiContext->setConfig(
-		array(
-			'mode' => 'sandbox',
-			'log.LogEnabled' => true,
-			'log.FileName' => '../PayPal.log',
-			'log.LogLevel' => 'DEBUG',
-			'cache.enabled' => true,
-			// 'http.CURLOPT_CONNECTTIMEOUT' => 30
-			// 'http.headers.PayPal-Partner-Attribution-Id' => '123123123'
-			//'log.AdapterFactory' => '\PayPal\Log\DefaultLogFactory' // Factory class implementing \PayPal\Log\PayPalLogFactory
-		)
-	);
+$transaction = new \PayPal\Api\Transaction();
+$transaction->setAmount($amount)
+	->setItemList($itemList)
+	->setDescription('apples evrywhere!')
+	->setInvoiceNumber(uniqid("FDS", true));
 
-	return $apiContext;
+$redirectUrls = new \PayPal\Api\RedirectUrls();
+$redirectUrls->setReturnUrl($base . "/success.php?payment=true")
+	->setCancelUrl($base . "/cancel.php?payment=false");
+
+$payment = new \PayPal\Api\Payment();
+$payment->setIntent('sale')
+	->setPayer($payer)
+	->setRedirectUrls($redirectUrls)
+	->setTransactions([$transaction]);
+
+$request = clone $payment;
+
+try{
+	$payment->create($apiContext);
+}catch (Exception $e){
+	echo $e->getMessage();
 }
 
-$apiContext = getApiContext($clientId, $clientSecret);
+$approvalUrl = $payment->getApprovalLink();
+
+echo "<a href='{$approvalUrl}' target='_blank'>Jetzt Bezahlen!</a>";
